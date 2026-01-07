@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Developer Instructions - CanadaMade</title>
+    <style>
+        @page {
+            margin: 1in;
+            size: letter;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #1d1d1f;
+            max-width: 7in;
+            margin: 0 auto;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        h1 {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            font-size: 24pt;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+        .subtitle {
+            font-size: 11pt;
+            color: #86868b;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #d2d2d7;
+        }
+        .overview {
+            background: #f5f5f7;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            font-size: 11pt;
+            color: #1d1d1f;
+        }
+        h2 {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            font-size: 17pt;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin: 35px 0 18px 0;
+            letter-spacing: -0.3px;
+        }
+        h3 {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #86868b;
+            margin: 18px 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .task {
+            background: #fff;
+            border: 1px solid #d2d2d7;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+        ol, ul {
+            margin-left: 20px;
+            margin-bottom: 14px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        code {
+            background: #f5f5f7;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 10pt;
+            color: #1d1d1f;
+        }
+        .provide {
+            background: #fff9e6;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin: 16px 0;
+        }
+        .provide-title {
+            font-weight: 600;
+            color: #a68a00;
+            margin-bottom: 8px;
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 10pt;
+            margin: 14px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #d2d2d7;
+        }
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid #d2d2d7;
+        }
+        th {
+            background: #f5f5f7;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        .summary-section {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .summary-box {
+            flex: 1;
+            border-radius: 12px;
+            padding: 18px 22px;
+        }
+        .summary-box.dev {
+            background: #e8f5e8;
+        }
+        .summary-box.client {
+            background: #e8f0f5;
+        }
+        .summary-box h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: #1d1d1f;
+        }
+        .checklist {
+            list-style: none;
+            margin-left: 0;
+        }
+        .checklist li {
+            padding-left: 26px;
+            position: relative;
+            margin: 8px 0;
+            font-size: 10pt;
+        }
+        .checklist li:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 2px;
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid #86868b;
+            border-radius: 4px;
+        }
+        .checklist li.done:before {
+            background: #34c759;
+            border-color: #34c759;
+        }
+        .checklist li.done:after {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            width: 6px;
+            height: 9px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #d2d2d7;
+            margin: 30px 0;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .note {
+            background: #f5f5f7;
+            border-radius: 10px;
+            padding: 14px 18px;
+            font-size: 10pt;
+            color: #86868b;
+            margin-top: 20px;
+        }
+        @media print {
+            body { max-width: none; }
+            .task { page-break-inside: avoid; }
+            h2 { page-break-after: avoid; }
+            .summary-section { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Developer Instructions</h1>
+<div class="subtitle">
+    CanadaMade Gulf Expo &mdash; Lead Capture App
+</div>
+
+<div class="overview">
+    <strong>Scope:</strong> Set up email and SMS notifications for the Gulf Expo lead capture app. You have full access to the domain, Supabase, and Netlify. WhatsApp integration will be handled separately.
+</div>
+
+<h2>Task 1: Email Setup (SendGrid)</h2>
+
+<div class="task">
+    <h3>Account Setup</h3>
+    <ol>
+        <li>Create a SendGrid account at <strong>sendgrid.com</strong> (free tier: 100 emails/day)</li>
+        <li>Go to <strong>Settings &rarr; Sender Authentication &rarr; Domain Authentication</strong></li>
+        <li>Enter domain: <code>canadamade.com</code></li>
+        <li>SendGrid will generate <strong>3 CNAME DNS records</strong></li>
+        <li>Add the DNS records to the domain and verify</li>
+    </ol>
+
+    <h3>API Key</h3>
+    <ol>
+        <li>Go to <strong>Settings &rarr; API Keys &rarr; Create API Key</strong></li>
+        <li>Name: <code>CanadaMade Expo</code></li>
+        <li>Select <strong>Restricted Access</strong> &rarr; enable <strong>Mail Send &rarr; Full Access</strong></li>
+        <li>Copy the API key (shown only once)</li>
+        <li>Add to Netlify: <strong>Site Settings &rarr; Environment Variables</strong></li>
+        <li>Variable name: <code>SENDGRID_API_KEY</code></li>
+    </ol>
+
+    <h3>Create Function</h3>
+    <p>Create <code>netlify/functions/send-email.js</code></p>
+    <ul>
+        <li>Parameters: recipient email, first_name, flavor</li>
+        <li>Send from: <code>info@canadamade.com</code></li>
+        <li>Fetch template from Supabase <code>message_templates</code> where name = <code>customer_confirmation_email</code></li>
+        <li>Replace <code>{{first_name}}</code> and <code>{{flavor}}</code></li>
+        <li>Send via SendGrid API</li>
+    </ul>
+
+    <div class="provide">
+        <div class="provide-title">Provide to Me</div>
+        <ul>
+            <li>SendGrid login credentials (email + password)</li>
+            <li>Confirmation that API key is added to Netlify</li>
+        </ul>
+    </div>
+</div>
+
+<h2>Task 2: SMS Setup (Unifonic)</h2>
+
+<div class="task">
+    <h3>Account Setup</h3>
+    <ol>
+        <li>Create account at <strong>unifonic.com</strong></li>
+        <li>Complete business verification</li>
+        <li>Go to <strong>Dashboard &rarr; API Settings</strong></li>
+        <li>Copy your <strong>App ID</strong></li>
+        <li>Add to Netlify environment variables:
+            <ul>
+                <li><code>UNIFONIC_APP_ID</code> = your App ID</li>
+                <li><code>UNIFONIC_SENDER_ID</code> = <code>CANADAMADE</code> (placeholder)</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>Create Function</h3>
+    <p>Create <code>netlify/functions/send-sms.js</code></p>
+    <ul>
+        <li>Parameters: recipient phone, first_name, flavor</li>
+        <li>Fetch template from Supabase <code>message_templates</code> where name = <code>customer_confirmation_sms</code></li>
+        <li>Replace <code>{{first_name}}</code> and <code>{{flavor}}</code></li>
+        <li>Send via Unifonic API</li>
+    </ul>
+
+    <h3>Testing</h3>
+    <p>Test the function with your own phone number before handoff.</p>
+
+    <div class="provide">
+        <div class="provide-title">Provide to Me</div>
+        <ul>
+            <li>Unifonic login credentials (email + password)</li>
+            <li>Confirmation that environment variables are added to Netlify</li>
+        </ul>
+    </div>
+</div>
+
+<div class="page-break"></div>
+
+<h2>Task 3: Connect to App Flow</h2>
+
+<div class="task">
+    <h3>Integration</h3>
+    <p>After a customer completes verification, trigger notifications based on their preference:</p>
+
+    <table>
+        <tr>
+            <th>comm_preference</th>
+            <th>Action</th>
+        </tr>
+        <tr>
+            <td><code>email</code></td>
+            <td>Call <code>send-email</code> with email, first_name, flavor</td>
+        </tr>
+        <tr>
+            <td><code>sms</code></td>
+            <td>Call <code>send-sms</code> with phone, first_name, flavor</td>
+        </tr>
+        <tr>
+            <td><code>whatsapp</code></td>
+            <td>Skip (will be handled separately)</td>
+        </tr>
+    </table>
+
+    <h3>Error Handling</h3>
+    <ul>
+        <li>Log success/failure to console</li>
+        <li>Don't block user flow if notification fails</li>
+    </ul>
+</div>
+
+<h2>Task 4: Staff Notification (Prepare Only)</h2>
+
+<div class="task">
+    <p>Create <code>netlify/functions/notify-staff.js</code> but don't connect yet.</p>
+
+    <h3>Requirements</h3>
+    <ul>
+        <li>Accept full customer data</li>
+        <li>Fetch template from <code>message_templates</code> where name = <code>staff_notification</code></li>
+        <li>Replace variables: <code>{{first_name}}</code>, <code>{{last_name}}</code>, <code>{{company}}</code>, <code>{{job_title}}</code>, <code>{{phone}}</code>, <code>{{email}}</code>, <code>{{country}}</code>, <code>{{flavor}}</code>, <code>{{photo_url}}</code>, <code>{{timestamp}}</code></li>
+    </ul>
+    <p>I will provide staff phone number and delivery method later.</p>
+</div>
+
+<hr>
+
+<h2>Database Reference</h2>
+
+<div class="task">
+    <h3>message_templates</h3>
+    <table>
+        <tr><th>name</th><th>type</th></tr>
+        <tr><td><code>customer_confirmation_email</code></td><td>email</td></tr>
+        <tr><td><code>customer_confirmation_sms</code></td><td>sms</td></tr>
+        <tr><td><code>customer_confirmation_whatsapp</code></td><td>whatsapp</td></tr>
+        <tr><td><code>staff_notification</code></td><td>staff_notification</td></tr>
+    </table>
+
+    <h3>leads table fields</h3>
+    <p><code>first_name</code>, <code>last_name</code>, <code>company</code>, <code>job_title</code>, <code>email</code>, <code>phone</code>, <code>country</code>, <code>flavor</code>, <code>comm_preference</code>, <code>photo_url</code></p>
+</div>
+
+<hr>
+
+<h2>Summary</h2>
+
+<div class="summary-section">
+    <div class="summary-box dev">
+        <h3>Developer Deliverables</h3>
+        <ul class="checklist">
+            <li>SendGrid account + domain verified</li>
+            <li>Unifonic account + API configured</li>
+            <li>Create <code>send-email.js</code></li>
+            <li>Create <code>send-sms.js</code></li>
+            <li>Create <code>notify-staff.js</code></li>
+            <li>Connect to app flow</li>
+            <li>Provide all login credentials to me</li>
+        </ul>
+    </div>
+
+    <div class="summary-box client">
+        <h3>I Receive</h3>
+        <ul class="checklist">
+            <li>SendGrid login credentials</li>
+            <li>Unifonic login credentials</li>
+            <li>Confirmation of Netlify env vars</li>
+        </ul>
+    </div>
+</div>
+
+<div class="note">
+    Questions? Contact me for clarification before proceeding.
+</div>
+
+</body>
+</html>

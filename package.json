@@ -1,0 +1,8 @@
+{
+  "name": "canadamade-gulfexpo",
+  "version": "1.0.0",
+  "description": "CanadaMade Gulf Expo Dubai 2026 Lead Capture",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
