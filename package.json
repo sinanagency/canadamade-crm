@@ -2,7 +2,16 @@
   "name": "canadamade-gulfexpo",
   "version": "1.0.0",
   "description": "CanadaMade Gulf Expo Dubai 2026 Lead Capture",
+  "scripts": {
+    "test:send-email": "node test/send-email.test.js",
+    "test:send-sms": "node test/send-sms.test.js",
+    "test:verification-email": "node test/send-verification-email.test.js",
+    "dev": "netlify dev"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.3"
   }
 }
