@@ -2980,6 +2980,52 @@
               });
           }
 
+          async function sendWhatsAppVerification(phone, code, firstName) {
+            try {
+              const response = await fetch(
+                "/.netlify/functions/send-whatsapp",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    phone: phone,
+                    code: code,
+                    first_name: firstName || "Valued Customer",
+                  }),
+                }
+              );
+              if (!response.ok) {
+                if (response.status === 405 || response.status === 404) {
+                  console.warn(
+                    "WhatsApp function not available (running locally or not deployed). WhatsApp will be sent when deployed to Netlify."
+                  );
+                  return false;
+                } else {
+                  const errorText = await response.text();
+                  console.error("WhatsApp send failed:", errorText);
+                  return false;
+                }
+              } else {
+                console.log("WhatsApp verification sent successfully");
+                return true;
+              }
+            } catch (error) {
+              if (
+                error.message.includes("Failed to fetch") ||
+                error.message.includes("net::ERR_")
+              ) {
+                console.warn(
+                  "WhatsApp function not available (running locally). WhatsApp will be sent when deployed to Netlify."
+                );
+              } else {
+                console.error("WhatsApp send error:", error);
+              }
+              return false;
+            }
+          }
+
           async function sendVerificationEmail(email, code, firstName) {
             try {
               const response = await fetch(
@@ -3117,6 +3163,24 @@
                   } else {
                     alert("DEMO: New code is " + verificationCode);
                   }
+                } else if (selectedComm === "whatsapp") {
+                  const phone = document.getElementById("phoneCode1").value +
+                    document.getElementById("phone1").value;
+                  const waPhone = whatsappSameAsPhone
+                    ? phone
+                    : document.getElementById("waCode").value +
+                      document.getElementById("waNumber").value;
+                  const firstName = document.getElementById("firstName").value;
+                  const sent = await sendWhatsAppVerification(
+                    waPhone,
+                    verificationCode,
+                    firstName
+                  );
+                  if (sent) {
+                    alert("Verification code has been resent to your WhatsApp!");
+                  } else {
+                    alert("DEMO: New code is " + verificationCode);
+                  }
                 } else {
                   alert("DEMO: New code is " + verificationCode);
                 }
@@ -3166,7 +3230,28 @@
                 : document.getElementById("waCode").value +
                   document.getElementById("waNumber").value;
               text = "We sent a 4-digit code to WhatsApp " + waPhone;
-              alert("DEMO MODE: Your verification code is " + verificationCode);
+              const firstName = document.getElementById("firstName").value;
+              const whatsappSent = await sendWhatsAppVerification(
+                waPhone,
+                verificationCode,
+                firstName
+              );
+              if (!whatsappSent) {
+                const isLocalDev =
+                  window.location.hostname === "localhost" ||
+                  window.location.hostname === "127.0.0.1";
+                if (isLocalDev) {
+                  alert(
+                    "DEMO MODE: Your verification code is " + verificationCode
+                  );
+                } else {
+                  alert(
+                    "We're having trouble sending WhatsApp. Your verification code is " +
+                      verificationCode +
+                      ". Please enter it below."
+                  );
+                }
+              }
             } else {
               text = "We sent a 4-digit code via SMS to " + phone;
               alert("DEMO MODE: Your verification code is " + verificationCode);
