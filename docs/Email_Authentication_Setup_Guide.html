@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Authentication Setup Guide - CanadaMade</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 2cm;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.6;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 40px 60px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      border-bottom: 3px solid #E31837;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-size: 24pt;
+      font-weight: 700;
+      color: #E31837;
+    }
+
+    .logo span {
+      color: #1a1a1a;
+    }
+
+    .doc-meta {
+      text-align: right;
+      font-size: 9pt;
+      color: #666;
+    }
+
+    .doc-title {
+      font-size: 22pt;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+
+    .doc-subtitle {
+      font-size: 12pt;
+      color: #666;
+    }
+
+    /* Sections */
+    h2 {
+      font-size: 14pt;
+      font-weight: 700;
+      color: #E31837;
+      margin: 30px 0 15px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    h3 {
+      font-size: 12pt;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 20px 0 10px 0;
+    }
+
+    h4 {
+      font-size: 11pt;
+      font-weight: 600;
+      color: #333;
+      margin: 15px 0 8px 0;
+    }
+
+    p {
+      margin-bottom: 12px;
+    }
+
+    /* Alert boxes */
+    .alert {
+      padding: 15px 20px;
+      border-radius: 6px;
+      margin: 20px 0;
+      font-size: 10pt;
+    }
+
+    .alert-warning {
+      background: #FEF3C7;
+      border-left: 4px solid #F59E0B;
+    }
+
+    .alert-info {
+      background: #EFF6FF;
+      border-left: 4px solid #3B82F6;
+    }
+
+    .alert-success {
+      background: #ECFDF5;
+      border-left: 4px solid #10B981;
+    }
+
+    .alert-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      font-size: 10pt;
+    }
+
+    th {
+      background: #f8f8f8;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      border: 1px solid #e0e0e0;
+    }
+
+    td {
+      padding: 10px 12px;
+      border: 1px solid #e0e0e0;
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    /* Code */
+    code {
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 9pt;
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: #E31837;
+    }
+
+    pre {
+      background: #1a1a1a;
+      color: #f0f0f0;
+      padding: 15px 20px;
+      border-radius: 6px;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 9pt;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+
+    /* Lists */
+    ol, ul {
+      margin: 10px 0 15px 25px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    /* Steps */
+    .step {
+      display: flex;
+      gap: 15px;
+      margin: 20px 0;
+      padding: 15px;
+      background: #fafafa;
+      border-radius: 8px;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      background: #E31837;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14pt;
+      flex-shrink: 0;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-title {
+      font-weight: 600;
+      font-size: 11pt;
+      margin-bottom: 8px;
+    }
+
+    /* Checklist */
+    .checklist {
+      list-style: none;
+      margin-left: 0;
+    }
+
+    .checklist li {
+      padding-left: 28px;
+      position: relative;
+    }
+
+    .checklist li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      font-size: 14pt;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+      font-size: 9pt;
+      color: #666;
+      text-align: center;
+    }
+
+    /* Page breaks */
+    .page-break {
+      page-break-before: always;
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        padding: 0;
+      }
+      .no-print {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">Canada<span>Made</span></div>
+      <div class="doc-meta">
+        Document Version: 1.0<br>
+        Date: January 2026<br>
+        Classification: Internal
+      </div>
+    </div>
+    <h1 class="doc-title">Email Authentication Setup Guide</h1>
+    <p class="doc-subtitle">SendGrid Domain Verification for Production Email Delivery</p>
+  </div>
+
+  <!-- Overview -->
+  <h2>1. Overview</h2>
+
+  <p>This document outlines the steps required to configure email authentication for the <code>canadamade.com</code> domain. Proper authentication ensures emails sent from our systems are delivered to recipients' inboxes rather than being flagged as spam or rejected.</p>
+
+  <div class="alert alert-warning">
+    <div class="alert-title">Current Issue</div>
+    Emails sent from <code>info@canadamade.com</code> are being flagged as suspicious by Gmail and other major email providers due to missing domain authentication records.
+  </div>
+
+  <h3>Scope of Work</h3>
+  <ul>
+    <li>Configure SendGrid Sender Authentication</li>
+    <li>Add required DNS records (CNAME, TXT)</li>
+    <li>Verify domain ownership</li>
+    <li>Test email deliverability</li>
+  </ul>
+
+  <h3>Estimated Time</h3>
+  <table>
+    <tr>
+      <th>Task</th>
+      <th>Duration</th>
+    </tr>
+    <tr>
+      <td>SendGrid Configuration</td>
+      <td>10-15 minutes</td>
+    </tr>
+    <tr>
+      <td>DNS Record Updates</td>
+      <td>10-15 minutes</td>
+    </tr>
+    <tr>
+      <td>DNS Propagation</td>
+      <td>15 minutes - 48 hours</td>
+    </tr>
+    <tr>
+      <td>Verification & Testing</td>
+      <td>15 minutes</td>
+    </tr>
+  </table>
+
+  <!-- SendGrid Configuration -->
+  <h2>2. SendGrid Domain Authentication</h2>
+
+  <div class="step">
+    <div class="step-number">1</div>
+    <div class="step-content">
+      <div class="step-title">Access SendGrid Dashboard</div>
+      <p>Navigate to <code>https://app.sendgrid.com</code> and log in with administrator credentials.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">2</div>
+    <div class="step-content">
+      <div class="step-title">Open Sender Authentication</div>
+      <p>From the left sidebar, navigate to: <strong>Settings</strong> → <strong>Sender Authentication</strong></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">3</div>
+    <div class="step-content">
+      <div class="step-title">Initiate Domain Authentication</div>
+      <p>Click the <strong>"Authenticate Your Domain"</strong> button to begin the setup process.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">4</div>
+    <div class="step-content">
+      <div class="step-title">Configure Domain Settings</div>
+      <p>Enter the following information:</p>
+      <table>
+        <tr>
+          <th>Field</th>
+          <th>Value</th>
+        </tr>
+        <tr>
+          <td>DNS Host</td>
+          <td>Select your DNS provider (Cloudflare, GoDaddy, etc.) or "Other"</td>
+        </tr>
+        <tr>
+          <td>Domain</td>
+          <td><code>canadamade.com</code></td>
+        </tr>
+      </table>
+      <p style="margin-top: 10px;"><strong>Advanced Settings (recommended):</strong></p>
+      <ul>
+        <li>Enable "Use automated security"</li>
+        <li>Enable "Use custom return path"</li>
+        <li>Set return path subdomain to: <code>em</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">5</div>
+    <div class="step-content">
+      <div class="step-title">Record the DNS Values</div>
+      <p>SendGrid will generate three CNAME records. Copy these values exactly as shown. They will be required in the next section.</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <div class="alert-title">Note</div>
+    The exact CNAME values will be unique to your SendGrid account. Do not use example values from documentation.
+  </div>
+
+  <!-- DNS Configuration -->
+  <h2 class="page-break">3. DNS Record Configuration</h2>
+
+  <p>The following DNS records must be added to the <code>canadamade.com</code> domain. Access your DNS provider's management console to add these records.</p>
+
+  <h3>3.1 CNAME Records (from SendGrid)</h3>
+
+  <p>Add all three CNAME records provided by SendGrid:</p>
+
+  <table>
+    <tr>
+      <th>Type</th>
+      <th>Host/Name</th>
+      <th>Value/Target</th>
+      <th>TTL</th>
+    </tr>
+    <tr>
+      <td>CNAME</td>
+      <td><code>em####</code></td>
+      <td><code>u######.wl.sendgrid.net</code></td>
+      <td>Auto / 1 Hour</td>
+    </tr>
+    <tr>
+      <td>CNAME</td>
+      <td><code>s1._domainkey</code></td>
+      <td><code>s1.domainkey.u######.wl.sendgrid.net</code></td>
+      <td>Auto / 1 Hour</td>
+    </tr>
+    <tr>
+      <td>CNAME</td>
+      <td><code>s2._domainkey</code></td>
+      <td><code>s2.domainkey.u######.wl.sendgrid.net</code></td>
+      <td>Auto / 1 Hour</td>
+    </tr>
+  </table>
+
+  <div class="alert alert-warning">
+    <div class="alert-title">Important: Cloudflare Users</div>
+    If using Cloudflare, ensure the proxy status is set to <strong>"DNS only"</strong> (grey cloud icon) for all CNAME records. The orange proxy icon will cause verification to fail.
+  </div>
+
+  <h3>3.2 SPF Record</h3>
+
+  <p>Add or update the SPF record to authorize SendGrid to send emails on behalf of your domain:</p>
+
+  <table>
+    <tr>
+      <th>Type</th>
+      <th>Host/Name</th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <td>TXT</td>
+      <td><code>@</code></td>
+      <td><code>v=spf1 include:sendgrid.net ~all</code></td>
+    </tr>
+  </table>
+
+  <p><strong>If an SPF record already exists</strong>, merge the SendGrid include statement with existing entries:</p>
+
+  <pre>v=spf1 include:_spf.google.com include:sendgrid.net ~all</pre>
+
+  <div class="alert alert-warning">
+    <div class="alert-title">SPF Record Limit</div>
+    Only one SPF record is permitted per domain. Multiple SPF records will cause authentication failures.
+  </div>
+
+  <h3>3.3 DMARC Record</h3>
+
+  <p>Add a DMARC record to specify how receiving servers should handle authentication failures:</p>
+
+  <table>
+    <tr>
+      <th>Type</th>
+      <th>Host/Name</th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <td>TXT</td>
+      <td><code>_dmarc</code></td>
+      <td><code>v=DMARC1; p=none; rua=mailto:admin@canadamade.com</code></td>
+    </tr>
+  </table>
+
+  <p>The <code>p=none</code> policy enables monitoring mode. After confirming proper operation, consider updating to <code>p=quarantine</code> or <code>p=reject</code> for enhanced security.</p>
+
+  <!-- Provider Instructions -->
+  <h2 class="page-break">4. DNS Provider Instructions</h2>
+
+  <h3>4.1 Cloudflare</h3>
+  <ol>
+    <li>Log in to Cloudflare Dashboard</li>
+    <li>Select the <code>canadamade.com</code> domain</li>
+    <li>Navigate to <strong>DNS</strong> → <strong>Records</strong></li>
+    <li>Click <strong>Add record</strong></li>
+    <li>Select record type and enter values</li>
+    <li>Set Proxy status to <strong>DNS only</strong> for CNAME records</li>
+    <li>Click <strong>Save</strong></li>
+  </ol>
+
+  <h3>4.2 GoDaddy</h3>
+  <ol>
+    <li>Log in to GoDaddy account</li>
+    <li>Navigate to <strong>My Products</strong> → <strong>DNS</strong></li>
+    <li>Select <code>canadamade.com</code></li>
+    <li>Click <strong>Add</strong> under DNS Records</li>
+    <li>Enter record type, host, and value</li>
+    <li>Set TTL to 1 Hour</li>
+    <li>Click <strong>Save</strong></li>
+  </ol>
+
+  <h3>4.3 Namecheap</h3>
+  <ol>
+    <li>Log in to Namecheap</li>
+    <li>Navigate to <strong>Domain List</strong> → <strong>Manage</strong></li>
+    <li>Select <strong>Advanced DNS</strong></li>
+    <li>Add records under "Host Records" section</li>
+    <li>Save changes</li>
+  </ol>
+
+  <!-- Verification -->
+  <h2>5. Verification</h2>
+
+  <h3>5.1 SendGrid Verification</h3>
+  <ol>
+    <li>Return to SendGrid Sender Authentication page</li>
+    <li>Locate your domain in the list</li>
+    <li>Click <strong>Verify</strong></li>
+    <li>Confirm all records show green checkmarks</li>
+  </ol>
+
+  <div class="alert alert-info">
+    <div class="alert-title">Propagation Time</div>
+    DNS changes may take 15 minutes to 48 hours to propagate globally. If verification fails initially, wait and retry.
+  </div>
+
+  <h3>5.2 External Verification Tools</h3>
+  <p>Use these tools to confirm DNS records are properly configured:</p>
+
+  <table>
+    <tr>
+      <th>Record Type</th>
+      <th>Verification URL</th>
+    </tr>
+    <tr>
+      <td>SPF</td>
+      <td><code>https://mxtoolbox.com/spf.aspx</code></td>
+    </tr>
+    <tr>
+      <td>DKIM</td>
+      <td><code>https://mxtoolbox.com/dkim.aspx</code></td>
+    </tr>
+    <tr>
+      <td>DMARC</td>
+      <td><code>https://mxtoolbox.com/dmarc.aspx</code></td>
+    </tr>
+  </table>
+
+  <h3>5.3 Email Delivery Test</h3>
+  <ol>
+    <li>Send a test email to a Gmail account</li>
+    <li>Verify the email arrives in the inbox (not spam)</li>
+    <li>Open the email and select "Show original" from the menu</li>
+    <li>Confirm the following authentication results:
+      <ul>
+        <li><code>SPF: PASS</code></li>
+        <li><code>DKIM: PASS</code></li>
+        <li><code>DMARC: PASS</code></li>
+      </ul>
+    </li>
+  </ol>
+
+  <!-- Checklist -->
+  <h2 class="page-break">6. Completion Checklist</h2>
+
+  <ul class="checklist">
+    <li>SendGrid domain authentication initiated</li>
+    <li>CNAME record 1 added (return path)</li>
+    <li>CNAME record 2 added (DKIM key 1)</li>
+    <li>CNAME record 3 added (DKIM key 2)</li>
+    <li>SPF TXT record added/updated</li>
+    <li>DMARC TXT record added</li>
+    <li>SendGrid verification completed (all green)</li>
+    <li>Test email sent and received in inbox</li>
+    <li>Email headers show SPF/DKIM/DMARC pass</li>
+  </ul>
+
+  <!-- Troubleshooting -->
+  <h2>7. Troubleshooting</h2>
+
+  <h4>CNAME record not found</h4>
+  <ul>
+    <li>Ensure only the subdomain is entered, not the full domain</li>
+    <li>Correct: <code>em1234</code></li>
+    <li>Incorrect: <code>em1234.canadamade.com</code></li>
+  </ul>
+
+  <h4>Verification still failing after 48 hours</h4>
+  <ul>
+    <li>Double-check record values for typos</li>
+    <li>Verify Cloudflare proxy is disabled for CNAME records</li>
+    <li>Contact DNS provider support to confirm records are active</li>
+  </ul>
+
+  <h4>Emails still going to spam</h4>
+  <ul>
+    <li>Verify all authentication records are passing</li>
+    <li>Check SendGrid Email Activity for delivery status</li>
+    <li>Review email content for spam trigger words</li>
+    <li>Ensure sender reputation is healthy in SendGrid dashboard</li>
+  </ul>
+
+  <!-- Access Requirements -->
+  <h2>8. Required Access</h2>
+
+  <table>
+    <tr>
+      <th>System</th>
+      <th>Access Level Required</th>
+    </tr>
+    <tr>
+      <td>SendGrid</td>
+      <td>Administrator (Sender Authentication permissions)</td>
+    </tr>
+    <tr>
+      <td>DNS Provider</td>
+      <td>DNS record management permissions</td>
+    </tr>
+  </table>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p><strong>CanadaMade Foods Inc.</strong></p>
+    <p>Gulf Expo Dubai 2026 Project Documentation</p>
+    <p style="margin-top: 10px;">For technical support, contact the project administrator.</p>
+  </div>
+
+</body>
+</html>

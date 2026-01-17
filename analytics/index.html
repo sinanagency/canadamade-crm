@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics Dashboard | CanadaMade</title>
+  <link rel="icon" type="image/png" href="/logo.png">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #000000;
+      --bg-card: #0a0a0a;
+      --bg-elevated: #111111;
+      --border: #1a1a1a;
+      --border-hover: #2a2a2a;
+      --text: #ffffff;
+      --text-dim: #888888;
+      --text-muted: #555555;
+      --red: #E31837;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --orange: #f97316;
+      --cyan: #06b6d4;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-logo {
+      width: 40px;
+      height: 40px;
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .refresh-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .refresh-btn:hover {
+      background: var(--border);
+    }
+
+    .refresh-btn.loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .export-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--red);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .export-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .last-updated {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Main Layout */
+    .main {
+      padding: 24px 32px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-1-2 {
+      grid-template-columns: 1fr 2fr;
+    }
+
+    .grid-2-1 {
+      grid-template-columns: 2fr 1fr;
+    }
+
+    @media (max-width: 1200px) {
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .grid-1-2, .grid-2-1 { grid-template-columns: 1fr; }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: border-color 0.15s ease;
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-badge {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: var(--bg-elevated);
+      color: var(--text-dim);
+    }
+
+    /* KPI Cards */
+    .kpi {
+      text-align: center;
+      padding: 32px 24px;
+    }
+
+    .kpi-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .kpi-value {
+      font-size: 42px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+
+    .kpi-label {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+
+    .kpi-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .kpi-change.up {
+      color: var(--green);
+      background: rgba(34, 197, 94, 0.1);
+    }
+
+    .kpi-change.down {
+      color: var(--red);
+      background: rgba(227, 24, 55, 0.1);
+    }
+
+    /* Progress Bars */
+    .progress-item {
+      margin-bottom: 20px;
+    }
+
+    .progress-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .progress-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .progress-value {
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--bg-elevated);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    /* Rankings List */
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ranking-item:last-child {
+      border-bottom: none;
+    }
+
+    .ranking-position {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-elevated);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+
+    .ranking-position.gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #000; }
+    .ranking-position.silver { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #000; }
+    .ranking-position.bronze { background: linear-gradient(135deg, #d97706, #92400e); color: #000; }
+
+    .ranking-info {
+      flex: 1;
+    }
+
+    .ranking-name {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .ranking-meta {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .ranking-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* Hot Leads */
+    .lead-card {
+      background: var(--bg-elevated);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-left: 3px solid var(--green);
+    }
+
+    .lead-card.hot {
+      border-left-color: var(--red);
+    }
+
+    .lead-card.warm {
+      border-left-color: var(--orange);
+    }
+
+    .lead-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .lead-name {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .lead-priority {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .lead-priority.hot {
+      background: var(--red);
+      color: white;
+    }
+
+    .lead-priority.warm {
+      background: var(--orange);
+      color: white;
+    }
+
+    .lead-company {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .lead-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .lead-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      background: var(--bg-card);
+      border-radius: 4px;
+      color: var(--text-dim);
+    }
+
+    /* Funnel */
+    .funnel-stage {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: var(--bg-elevated);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .funnel-stage::after {
+      content: '↓';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    .funnel-stage:last-child::after {
+      display: none;
+    }
+
+    .funnel-icon {
+      font-size: 28px;
+    }
+
+    .funnel-info {
+      flex: 1;
+    }
+
+    .funnel-label {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+
+    .funnel-value {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .funnel-rate {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* Chart Container */
+    .chart-container {
+      position: relative;
+      height: 280px;
+    }
+
+    /* Section spacing */
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: var(--text-dim);
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Scrollable list */
+    .scroll-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .scroll-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .scroll-list::-webkit-scrollbar-track {
+      background: var(--bg-elevated);
+      border-radius: 3px;
+    }
+
+    .scroll-list::-webkit-scrollbar-thumb {
+      background: var(--border-hover);
+      border-radius: 3px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-dim);
+    }
+
+    .empty-state-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <img src="/logo.png" alt="CanadaMade" class="header-logo">
+    <div>
+      <div class="header-title">Analytics Dashboard</div>
+      <div class="header-subtitle">Gulf Expo Dubai 2026</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="last-updated" id="lastUpdated">Loading...</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAllData()">
+      <span>↻</span> Refresh
+    </button>
+    <a href="/.netlify/functions/export-csv" class="export-btn" download>
+      <span>↓</span> Export CSV
+    </a>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- KPI Row -->
+  <section class="section">
+    <div class="grid grid-4">
+      <div class="card kpi">
+        <div class="kpi-icon">📊</div>
+        <div class="kpi-value" id="totalLeads">-</div>
+        <div class="kpi-label">Total Leads</div>
+        <div class="kpi-change up" id="leadsChange">-</div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-icon">✅</div>
+        <div class="kpi-value" id="verifiedLeads">-</div>
+        <div class="kpi-label">Verified</div>
+        <div class="kpi-change up" id="verifiedChange">-</div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-icon">🔥</div>
+        <div class="kpi-value" id="hotLeads">-</div>
+        <div class="kpi-label">Hot Leads</div>
+        <div class="kpi-change up" id="hotChange">-</div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-icon">🎯</div>
+        <div class="kpi-value" id="goalProgress">-</div>
+        <div class="kpi-label">Daily Goal</div>
+        <div class="kpi-change" id="goalRemaining">-</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Goals Progress -->
+  <section class="section">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🎯 Goal Progress</span>
+        <span class="card-badge" id="goalMotivation">Loading...</span>
+      </div>
+      <div id="goalsContainer">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Charts Row -->
+  <section class="section">
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🍟 Flavor Rankings</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="flavorChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">⏰ Leads by Hour</span>
+          <span class="card-badge">Dubai Time</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="hourlyChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Funnel & Countries -->
+  <section class="section">
+    <div class="grid grid-1-2">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📈 Conversion Funnel</span>
+        </div>
+        <div id="funnelContainer">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🌍 Top Countries</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="countryChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hot Leads & Interest Breakdown -->
+  <section class="section">
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🔥 Hot Leads</span>
+          <span class="card-badge" id="hotLeadsCount">0 leads</span>
+        </div>
+        <div class="scroll-list" id="hotLeadsContainer">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">💼 Interest Breakdown</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="interestChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Today vs Yesterday -->
+  <section class="section">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📅 Today vs Yesterday</span>
+        <span class="card-badge" id="performanceStatus">-</span>
+      </div>
+      <div id="comparisonContainer">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+const API_BASE = '/.netlify/functions';
+
+let flavorChart, hourlyChart, countryChart, interestChart;
+
+async function fetchData(endpoint) {
+  try {
+    const res = await fetch(`${API_BASE}/${endpoint}`);
+    return await res.json();
+  } catch (e) {
+    console.error(`Error fetching ${endpoint}:`, e);
+    return null;
+  }
+}
+
+async function loadAllData() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="spinner"></span> Loading...';
+
+  await Promise.all([
+    loadGoalTracker(),
+    loadFlavorRankings(),
+    loadHourlyData(),
+    loadCountryData(),
+    loadFunnel(),
+    loadHotLeads(),
+    loadInterestData(),
+    loadComparison()
+  ]);
+
+  document.getElementById('lastUpdated').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+  btn.classList.remove('loading');
+  btn.innerHTML = '<span>↻</span> Refresh';
+}
+
+async function loadGoalTracker() {
+  const data = await fetchData('goal-tracker');
+  if (!data?.success) return;
+
+  document.getElementById('totalLeads').textContent = data.goals.total_leads.current;
+  document.getElementById('goalProgress').textContent = data.goals.daily_leads.percentage + '%';
+  document.getElementById('goalMotivation').textContent = data.motivation;
+  document.getElementById('goalRemaining').textContent = `${data.goals.daily_leads.remaining} to go`;
+  document.getElementById('goalRemaining').className = 'kpi-change';
+
+  const goalsHtml = `
+    <div class="progress-item">
+      <div class="progress-header">
+        <span class="progress-label">Daily Leads</span>
+        <span class="progress-value">${data.goals.daily_leads.current} / ${data.goals.daily_leads.goal}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${data.goals.daily_leads.percentage}%; background: var(--red);"></div>
+      </div>
+    </div>
+    <div class="progress-item">
+      <div class="progress-header">
+        <span class="progress-label">Daily Verified</span>
+        <span class="progress-value">${data.goals.daily_verified.current} / ${data.goals.daily_verified.goal}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${data.goals.daily_verified.percentage}%; background: var(--green);"></div>
+      </div>
+    </div>
+    <div class="progress-item">
+      <div class="progress-header">
+        <span class="progress-label">Wholesale Leads</span>
+        <span class="progress-value">${data.goals.daily_wholesale.current} / ${data.goals.daily_wholesale.goal}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${data.goals.daily_wholesale.percentage}%; background: var(--blue);"></div>
+      </div>
+    </div>
+    <div class="progress-item">
+      <div class="progress-header">
+        <span class="progress-label">Total Campaign</span>
+        <span class="progress-value">${data.goals.total_leads.current} / ${data.goals.total_leads.goal}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${data.goals.total_leads.percentage}%; background: var(--purple);"></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('goalsContainer').innerHTML = goalsHtml;
+}
+
+async function loadFlavorRankings() {
+  const data = await fetchData('flavor-rankings');
+  if (!data?.success) return;
+
+  const ctx = document.getElementById('flavorChart').getContext('2d');
+
+  if (flavorChart) flavorChart.destroy();
+
+  const colors = ['#E31837', '#22c55e', '#eab308', '#3b82f6', '#8b5cf6'];
+
+  flavorChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: data.rankings.map(r => r.flavor),
+      datasets: [{
+        data: data.rankings.map(r => r.count),
+        backgroundColor: colors,
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color: '#888', padding: 16, font: { size: 13 } }
+        }
+      }
+    }
+  });
+}
+
+async function loadHourlyData() {
+  const data = await fetchData('leads-by-hour');
+  if (!data?.success) return;
+
+  const ctx = document.getElementById('hourlyChart').getContext('2d');
+
+  if (hourlyChart) hourlyChart.destroy();
+
+  // Filter to expo hours (8 AM - 10 PM)
+  const expoHours = data.hourly_breakdown.filter(h => h.hour >= 8 && h.hour <= 22);
+
+  hourlyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: expoHours.map(h => h.label),
+      datasets: [{
+        label: 'Leads',
+        data: expoHours.map(h => h.count),
+        backgroundColor: '#E31837',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#888', font: { size: 11 } }
+        },
+        y: {
+          grid: { color: '#1a1a1a' },
+          ticks: { color: '#888' }
+        }
+      }
+    }
+  });
+}
+
+async function loadCountryData() {
+  const data = await fetchData('leads-by-country');
+  if (!data?.success) return;
+
+  const ctx = document.getElementById('countryChart').getContext('2d');
+
+  if (countryChart) countryChart.destroy();
+
+  const top10 = data.rankings.slice(0, 10);
+
+  countryChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: top10.map(c => c.country),
+      datasets: [{
+        label: 'Leads',
+        data: top10.map(c => c.total),
+        backgroundColor: '#3b82f6',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          grid: { color: '#1a1a1a' },
+          ticks: { color: '#888' }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: '#888', font: { size: 12 } }
+        }
+      }
+    }
+  });
+}
+
+async function loadFunnel() {
+  const data = await fetchData('conversion-funnel');
+  if (!data?.success) return;
+
+  document.getElementById('verifiedLeads').textContent = data.funnel.stage_2_verified.count;
+
+  const funnelHtml = `
+    <div class="funnel-stage">
+      <div class="funnel-icon">📝</div>
+      <div class="funnel-info">
+        <div class="funnel-label">Registered</div>
+        <div class="funnel-value">${data.funnel.stage_1_registered.count}</div>
+      </div>
+      <div class="funnel-rate">100%</div>
+    </div>
+    <div class="funnel-stage">
+      <div class="funnel-icon">✅</div>
+      <div class="funnel-info">
+        <div class="funnel-label">Verified</div>
+        <div class="funnel-value">${data.funnel.stage_2_verified.count}</div>
+      </div>
+      <div class="funnel-rate" style="color: var(--green)">${data.funnel.stage_2_verified.percentage}</div>
+    </div>
+    <div class="funnel-stage">
+      <div class="funnel-icon">🎁</div>
+      <div class="funnel-info">
+        <div class="funnel-label">Collected Sample</div>
+        <div class="funnel-value">${data.funnel.stage_3_collected.count}</div>
+      </div>
+      <div class="funnel-rate" style="color: var(--blue)">${data.funnel.stage_3_collected.percentage}</div>
+    </div>
+  `;
+  document.getElementById('funnelContainer').innerHTML = funnelHtml;
+}
+
+async function loadHotLeads() {
+  const data = await fetchData('hot-leads');
+  if (!data?.success) return;
+
+  document.getElementById('hotLeads').textContent = data.summary.hot_leads;
+  document.getElementById('hotLeadsCount').textContent = `${data.summary.hot_leads + data.summary.warm_leads} priority leads`;
+
+  const allHot = [...data.hot_leads, ...data.warm_leads].slice(0, 10);
+
+  if (allHot.length === 0) {
+    document.getElementById('hotLeadsContainer').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🎯</div>
+        <p>No hot leads yet</p>
+      </div>
+    `;
+    return;
+  }
+
+  const leadsHtml = allHot.map(lead => `
+    <div class="lead-card ${lead.priority.toLowerCase()}">
+      <div class="lead-header">
+        <span class="lead-name">${lead.name}</span>
+        <span class="lead-priority ${lead.priority.toLowerCase()}">${lead.priority}</span>
+      </div>
+      <div class="lead-company">${lead.company} · ${lead.job_title}</div>
+      <div class="lead-tags">
+        ${lead.reasons.map(r => `<span class="lead-tag">${r}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('hotLeadsContainer').innerHTML = leadsHtml;
+}
+
+async function loadInterestData() {
+  const data = await fetchData('leads-by-interest');
+  if (!data?.success) return;
+
+  const ctx = document.getElementById('interestChart').getContext('2d');
+
+  if (interestChart) interestChart.destroy();
+
+  const colors = {
+    wholesale: '#22c55e',
+    retail: '#3b82f6',
+    distributor: '#8b5cf6',
+    personal: '#eab308',
+    unspecified: '#555'
+  };
+
+  interestChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: data.breakdown.map(i => i.interest.charAt(0).toUpperCase() + i.interest.slice(1)),
+      datasets: [{
+        data: data.breakdown.map(i => i.count),
+        backgroundColor: data.breakdown.map(i => colors[i.interest] || '#555'),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color: '#888', padding: 16, font: { size: 13 } }
+        }
+      }
+    }
+  });
+}
+
+async function loadComparison() {
+  const data = await fetchData('today-vs-yesterday');
+  if (!data?.success) return;
+
+  document.getElementById('performanceStatus').textContent = data.performance;
+  document.getElementById('performanceStatus').style.background =
+    data.performance === 'UP' ? 'rgba(34, 197, 94, 0.2)' :
+    data.performance === 'DOWN' ? 'rgba(227, 24, 55, 0.2)' : 'rgba(234, 179, 8, 0.2)';
+  document.getElementById('performanceStatus').style.color =
+    data.performance === 'UP' ? 'var(--green)' :
+    data.performance === 'DOWN' ? 'var(--red)' : 'var(--yellow)';
+
+  document.getElementById('leadsChange').textContent = data.comparison.leads.change;
+  document.getElementById('leadsChange').className = `kpi-change ${data.comparison.leads.today >= data.comparison.leads.yesterday ? 'up' : 'down'}`;
+
+  document.getElementById('verifiedChange').textContent = data.comparison.verified.change;
+  document.getElementById('verifiedChange').className = `kpi-change ${data.comparison.verified.today >= data.comparison.verified.yesterday ? 'up' : 'down'}`;
+
+  const compHtml = `
+    <div class="grid grid-4" style="text-align: center;">
+      <div>
+        <div style="font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Leads</div>
+        <div style="font-size: 24px; font-weight: 600;">${data.today.total} <span style="font-size: 14px; color: var(--text-muted)">vs ${data.yesterday.total}</span></div>
+        <div style="color: ${parseFloat(data.comparison.leads.change) >= 0 ? 'var(--green)' : 'var(--red)'}; font-size: 14px;">${data.comparison.leads.change}</div>
+      </div>
+      <div>
+        <div style="font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Verified</div>
+        <div style="font-size: 24px; font-weight: 600;">${data.today.verified} <span style="font-size: 14px; color: var(--text-muted)">vs ${data.yesterday.verified}</span></div>
+        <div style="color: ${parseFloat(data.comparison.verified.change) >= 0 ? 'var(--green)' : 'var(--red)'}; font-size: 14px;">${data.comparison.verified.change}</div>
+      </div>
+      <div>
+        <div style="font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Collected</div>
+        <div style="font-size: 24px; font-weight: 600;">${data.today.collected} <span style="font-size: 14px; color: var(--text-muted)">vs ${data.yesterday.collected}</span></div>
+        <div style="color: ${parseFloat(data.comparison.collected.change) >= 0 ? 'var(--green)' : 'var(--red)'}; font-size: 14px;">${data.comparison.collected.change}</div>
+      </div>
+      <div>
+        <div style="font-size: 13px; color: var(--text-dim); margin-bottom: 8px;">Wholesale</div>
+        <div style="font-size: 24px; font-weight: 600;">${data.today.wholesale} <span style="font-size: 14px; color: var(--text-muted)">vs ${data.yesterday.wholesale}</span></div>
+        <div style="color: ${parseFloat(data.comparison.wholesale.change) >= 0 ? 'var(--green)' : 'var(--red)'}; font-size: 14px;">${data.comparison.wholesale.change}</div>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 20px; padding: 16px; background: var(--bg-elevated); border-radius: 8px; color: var(--text-dim);">
+      ${data.insight}
+    </div>
+  `;
+  document.getElementById('comparisonContainer').innerHTML = compHtml;
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded', loadAllData);
+
+// Auto-refresh every 30 seconds
+setInterval(loadAllData, 30000);
+</script>
+
+</body>
+</html>
