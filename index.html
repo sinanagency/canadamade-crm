@@ -2205,13 +2205,14 @@
 
     <div class="success-overlay" id="successOverlay">
       <div class="success-content">
-        <div class="success-icon">✓</div>
-        <h2>Thank You!</h2>
-        <p>
-          We've received your interest. Our team will reach out soon about
-          distribution opportunities in your region.
+        <div class="success-icon">✅</div>
+        <h2>Verified!</h2>
+        <p id="successMessage">
+          Please proceed to the CanadaMade booth to collect your FREE sample!
         </p>
-        <div class="chip-emoji">🥔🍁✨</div>
+        <div id="successFlavor" style="font-size: 24px; font-weight: 700; color: #e31837; margin: 16px 0; padding: 16px 32px; background: #fef2f2; border-radius: 12px; display: inline-block;"></div>
+        <div class="chip-emoji">🍟🍁✨</div>
+        <p style="font-size: 14px; color: #6b7280; margin-top: 16px;">See you at the booth!</p>
       </div>
     </div>
 
@@ -3026,6 +3027,49 @@
             }
           }
 
+          async function sendSMSVerification(phone, code, firstName) {
+            try {
+              const response = await fetch(
+                "/.netlify/functions/send-verification-sms",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    phone: phone,
+                    code: code,
+                    first_name: firstName,
+                  }),
+                }
+              );
+
+              if (!response.ok) {
+                const errorData = await response.json();
+                console.error("SMS verification error:", errorData);
+                if (errorData.error === "SMS service not configured") {
+                  console.warn("Twilio not configured - SMS will work when Twilio credentials are added");
+                }
+                return false;
+              } else {
+                console.log("SMS verification sent successfully");
+                return true;
+              }
+            } catch (error) {
+              if (
+                error.message.includes("Failed to fetch") ||
+                error.message.includes("net::ERR_")
+              ) {
+                console.warn(
+                  "SMS function not available (running locally). SMS will be sent when deployed to Netlify."
+                );
+              } else {
+                console.error("SMS send error:", error);
+              }
+              return false;
+            }
+          }
+
           async function sendVerificationEmail(email, code, firstName) {
             try {
               const response = await fetch(
@@ -3182,7 +3226,20 @@
                     alert("DEMO: New code is " + verificationCode);
                   }
                 } else {
-                  alert("DEMO: New code is " + verificationCode);
+                  // SMS
+                  const phone = document.getElementById("phoneCode1").value +
+                    document.getElementById("phone1").value;
+                  const firstName = document.getElementById("firstName").value;
+                  const sent = await sendSMSVerification(
+                    phone,
+                    verificationCode,
+                    firstName
+                  );
+                  if (sent) {
+                    alert("Verification code has been resent via SMS!");
+                  } else {
+                    alert("DEMO: New code is " + verificationCode);
+                  }
                 }
 
                 resendBtn.textContent = originalText;
@@ -3254,7 +3311,28 @@
               }
             } else {
               text = "We sent a 4-digit code via SMS to " + phone;
-              alert("DEMO MODE: Your verification code is " + verificationCode);
+              const firstName = document.getElementById("firstName").value;
+              const smsSent = await sendSMSVerification(
+                phone,
+                verificationCode,
+                firstName
+              );
+              if (!smsSent) {
+                const isLocalDev =
+                  window.location.hostname === "localhost" ||
+                  window.location.hostname === "127.0.0.1";
+                if (isLocalDev) {
+                  alert(
+                    "DEMO MODE: Your verification code is " + verificationCode
+                  );
+                } else {
+                  alert(
+                    "We're having trouble sending SMS. Your verification code is " +
+                      verificationCode +
+                      ". Please enter it below."
+                  );
+                }
+              }
             }
             document.getElementById("verifyText").textContent = text;
 
@@ -3775,6 +3853,10 @@
             try {
               if (formDataToSubmit) {
                 formDataToSubmit.verification_code = verificationCode;
+                formDataToSubmit.verified = true;
+                formDataToSubmit.verified_at = new Date().toISOString();
+                formDataToSubmit.verification_method = selectedComm;
+                formDataToSubmit.collected = false;
               }
 
               // Check and decrement inventory
@@ -3804,52 +3886,40 @@
 
               console.log("Lead saved:", formDataToSubmit);
 
-              // Send confirmation email via Netlify function (only if comm_preference is email)
-              if (formDataToSubmit.comm_preference === "email") {
-                try {
-                  const emailResponse = await fetch(
-                    "/.netlify/functions/send-email",
-                    {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        email: formDataToSubmit.email,
-                        first_name: formDataToSubmit.first_name,
-                        flavor: formDataToSubmit.flavor,
-                      }),
-                    }
-                  );
-                  if (!emailResponse.ok) {
-                    const errorText = await emailResponse.text();
-                    if (
-                      emailResponse.status === 405 ||
-                      emailResponse.status === 404
-                    ) {
-                      console.warn(
-                        "Email function not available (running locally or not deployed). Email will be sent when deployed to Netlify."
-                      );
-                    } else {
-                      console.error("Email send failed:", errorText);
-                    }
-                  } else {
-                    console.log("Email sent successfully");
+              // Send confirmation message via user's preferred method
+              try {
+                const phone = formDataToSubmit.comm_preference === "whatsapp"
+                  ? formDataToSubmit.whatsapp_number
+                  : formDataToSubmit.phone;
+
+                const confirmResponse = await fetch(
+                  "/.netlify/functions/send-confirmation",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      method: formDataToSubmit.comm_preference,
+                      phone: phone,
+                      email: formDataToSubmit.email,
+                      first_name: formDataToSubmit.first_name,
+                      flavor: formDataToSubmit.flavor,
+                    }),
                   }
-                } catch (emailError) {
-                  if (
-                    emailError.message.includes("Failed to fetch") ||
-                    emailError.message.includes("net::ERR_")
-                  ) {
-                    console.warn(
-                      "Email function not available (running locally). Email will be sent when deployed to Netlify."
-                    );
-                  } else {
-                    console.error("Email send error:", emailError);
-                  }
-                  // Do not block the user flow if email fails
+                );
+                if (!confirmResponse.ok) {
+                  console.warn("Confirmation message failed, but user is still verified");
+                } else {
+                  console.log("Confirmation message sent successfully");
                 }
+              } catch (confirmError) {
+                console.warn("Confirmation message error:", confirmError.message);
+                // Do not block the user flow if confirmation fails
               }
+
+              // Update success overlay with flavor
+              document.getElementById("successFlavor").textContent = "🍟 " + formDataToSubmit.flavor;
 
               // Also save to localStorage as backup
               const leads = JSON.parse(

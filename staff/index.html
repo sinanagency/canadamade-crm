@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>CanadaMade Staff | Gulf Expo 2026</title>
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="apple-touch-icon" href="/logo.png">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #141414;
+      --bg-tertiary: #1a1a1a;
+      --bg-card: #1f1f1f;
+      --border: #2a2a2a;
+      --border-hover: #3a3a3a;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --text-muted: #666666;
+      --red: #E31837;
+      --red-glow: rgba(227, 24, 55, 0.3);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.3);
+      --yellow: #f59e0b;
+      --yellow-glow: rgba(245, 158, 11, 0.3);
+      --gold: #DAA520;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* PIN Screen */
+    .pin-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      background: linear-gradient(180deg, #0a0a0a 0%, #141414 100%);
+    }
+
+    .pin-screen.hidden { display: none; }
+
+    .pin-logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 16px;
+    }
+
+    .pin-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .pin-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+    }
+
+    .pin-dots {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .pin-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: 2px solid var(--border);
+      transition: all 0.2s ease;
+    }
+
+    .pin-dot.filled {
+      background: var(--red);
+      border-color: var(--red);
+      box-shadow: 0 0 20px var(--red-glow);
+    }
+
+    .pin-dot.error {
+      background: #ef4444;
+      border-color: #ef4444;
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    .pin-keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 280px;
+    }
+
+    .pin-key {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 28px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pin-key:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--border-hover);
+      transform: scale(1.05);
+    }
+
+    .pin-key:active {
+      transform: scale(0.95);
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    .pin-key.empty {
+      visibility: hidden;
+    }
+
+    .pin-key.delete {
+      font-size: 20px;
+    }
+
+    /* Dashboard */
+    .dashboard {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .dashboard.active { display: block; }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-logo {
+      width: 40px;
+      height: 40px;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .sound-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .sound-toggle.active {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+
+    .time-display {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Main Layout */
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 0;
+      min-height: calc(100vh - 73px);
+    }
+
+    @media (max-width: 1024px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: none;
+      }
+    }
+
+    /* Queue Section */
+    .queue-section {
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .queue-count {
+      background: var(--red);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .queue-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .queue-empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .queue-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Queue Card */
+    .queue-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .queue-card:hover {
+      border-color: var(--border-hover);
+      transform: translateX(4px);
+    }
+
+    .queue-card-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .queue-status {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px var(--green-glow);
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .queue-info h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .queue-details {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .queue-flavor {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-tertiary);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .queue-time {
+      color: var(--text-muted);
+    }
+
+    .queue-card-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-done {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 12px;
+      background: var(--green);
+      border: none;
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-done:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 20px var(--green-glow);
+    }
+
+    .btn-done:active {
+      transform: scale(0.98);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border);
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    /* Inventory Section */
+    .inventory-section {
+      margin-bottom: 32px;
+    }
+
+    .inventory-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .inventory-item {
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .inventory-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .inventory-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .inventory-count {
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .inventory-count.low {
+      color: var(--yellow);
+    }
+
+    .inventory-count.critical {
+      color: #ef4444;
+    }
+
+    .inventory-bar {
+      height: 6px;
+      background: var(--bg-primary);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .inventory-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .inventory-fill.low {
+      background: var(--yellow);
+    }
+
+    .inventory-fill.critical {
+      background: #ef4444;
+    }
+
+    /* Stats Section */
+    .stats-section {
+      background: var(--bg-tertiary);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Adjust Stock Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 400px;
+      width: 90%;
+      animation: modalIn 0.3s ease;
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .adjust-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .adjust-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .adjust-btn:hover {
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    .adjust-value {
+      font-size: 48px;
+      font-weight: 700;
+      min-width: 100px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .modal-btn.cancel {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    .modal-btn.save {
+      background: var(--red);
+      border: none;
+      color: white;
+    }
+
+    .modal-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    /* New Pickup Alert */
+    .alert-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .alert-overlay.active {
+      display: flex;
+    }
+
+    .alert-card {
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+      border: 2px solid var(--green);
+      border-radius: 24px;
+      padding: 40px;
+      text-align: center;
+      animation: alertPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 0 60px var(--green-glow);
+    }
+
+    @keyframes alertPop {
+      from {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .alert-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      animation: bounce 1s ease infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .alert-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 24px;
+    }
+
+    .alert-name {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .alert-flavor {
+      font-size: 20px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .alert-phone {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+
+    .alert-dismiss {
+      padding: 14px 40px;
+      border-radius: 12px;
+      background: var(--green);
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Adjust Stock Button */
+    .btn-adjust {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 16px;
+      border-radius: 10px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-adjust:hover {
+      background: var(--bg-card);
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 16px;
+      color: var(--text-muted);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PIN Screen -->
+  <div class="pin-screen" id="pinScreen">
+    <img src="/logo.png" alt="CanadaMade" class="pin-logo">
+    <h1 class="pin-title">Staff Portal</h1>
+    <p class="pin-subtitle">Gulf Expo Dubai 2026</p>
+
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+    </div>
+
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="enterPin('1')">1</button>
+      <button class="pin-key" onclick="enterPin('2')">2</button>
+      <button class="pin-key" onclick="enterPin('3')">3</button>
+      <button class="pin-key" onclick="enterPin('4')">4</button>
+      <button class="pin-key" onclick="enterPin('5')">5</button>
+      <button class="pin-key" onclick="enterPin('6')">6</button>
+      <button class="pin-key" onclick="enterPin('7')">7</button>
+      <button class="pin-key" onclick="enterPin('8')">8</button>
+      <button class="pin-key" onclick="enterPin('9')">9</button>
+      <button class="pin-key empty"></button>
+      <button class="pin-key" onclick="enterPin('0')">0</button>
+      <button class="pin-key delete" onclick="deletePin()">⌫</button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard" id="dashboard">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <img src="/logo.png" alt="CanadaMade" class="header-logo">
+        <span class="header-title">Staff Dashboard</span>
+      </div>
+      <div class="header-right">
+        <button class="sound-toggle active" id="soundToggle" onclick="toggleSound()">
+          <span id="soundIcon">🔔</span>
+          <span id="soundText">ON</span>
+        </button>
+        <span class="time-display" id="timeDisplay">12:00 PM</span>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Queue Section -->
+      <section class="queue-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            📋 Pickup Queue
+            <span class="queue-count" id="queueCount">0</span>
+          </h2>
+        </div>
+
+        <div id="queueList">
+          <div class="queue-empty">
+            <div class="queue-empty-icon">✨</div>
+            <p>No pickups waiting</p>
+            <p style="margin-top: 8px; font-size: 14px;">New verifications will appear here</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <!-- Inventory -->
+        <section class="inventory-section">
+          <div class="section-header">
+            <h2 class="section-title">📦 Inventory</h2>
+          </div>
+          <div class="inventory-list" id="inventoryList">
+            <!-- Filled by JS -->
+          </div>
+          <button class="btn-adjust" onclick="openAdjustModal()">+ Adjust Stock</button>
+        </section>
+
+        <!-- Stats -->
+        <section class="stats-section">
+          <div class="section-header">
+            <h2 class="section-title" style="font-size: 16px;">📊 Today</h2>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value" id="statVerified">0</div>
+              <div class="stat-label">Verified</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="statCollected">0</div>
+              <div class="stat-label">Collected</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="statWaiting">0</div>
+              <div class="stat-label">Waiting</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="statRate">0%</div>
+              <div class="stat-label">Rate</div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Adjust Stock Modal -->
+  <div class="modal-overlay" id="adjustModal">
+    <div class="modal">
+      <h3 class="modal-title">📦 Adjust Stock</h3>
+      <div style="margin-bottom: 20px;">
+        <select id="adjustFlavor" style="width: 100%; padding: 12px; border-radius: 10px; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); font-size: 16px;">
+          <option value="">Select flavor...</option>
+        </select>
+      </div>
+      <div class="adjust-controls">
+        <button class="adjust-btn" onclick="adjustStock(-10)">-10</button>
+        <button class="adjust-btn" onclick="adjustStock(-1)">-1</button>
+        <span class="adjust-value" id="adjustValue">0</span>
+        <button class="adjust-btn" onclick="adjustStock(1)">+1</button>
+        <button class="adjust-btn" onclick="adjustStock(10)">+10</button>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeAdjustModal()">Cancel</button>
+        <button class="modal-btn save" onclick="saveAdjustment()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Pickup Alert -->
+  <div class="alert-overlay" id="alertOverlay">
+    <div class="alert-card">
+      <div class="alert-icon">🔔</div>
+      <h2 class="alert-title">NEW PICKUP!</h2>
+      <p class="alert-name" id="alertName">John Smith</p>
+      <p class="alert-flavor" id="alertFlavor">🍟 Barbeque</p>
+      <p class="alert-phone" id="alertPhone">+971501234567</p>
+      <button class="alert-dismiss" onclick="dismissAlert()">View Queue</button>
+    </div>
+  </div>
+
+  <script>
+    // ========== CONFIGURATION ==========
+    const SUPABASE_URL = 'https://iaabsenvpwyqakvkypeq.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYWJzZW52cHd5cWFrdmt5cGVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY0MTg1MDAsImV4cCI6MjA1MTk5NDUwMH0.L3bH-GrCleqkIoc7TQ_d5uKRrmqDLwcZ7nA2dPNqUrc';
+    const CORRECT_PIN = '2026';
+
+    // ========== STATE ==========
+    let supabase;
+    let enteredPin = '';
+    let soundEnabled = true;
+    let currentAdjustment = 0;
+    let inventory = [];
+    let queue = [];
+
+    // ========== INIT ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      updateTime();
+      setInterval(updateTime, 1000);
+
+      // Check if already authenticated
+      if (sessionStorage.getItem('staff_authenticated') === 'true') {
+        showDashboard();
+      }
+    });
+
+    // ========== PIN FUNCTIONS ==========
+    function enterPin(digit) {
+      if (enteredPin.length >= 4) return;
+      enteredPin += digit;
+      updatePinDots();
+
+      if (enteredPin.length === 4) {
+        setTimeout(checkPin, 200);
+      }
+    }
+
+    function deletePin() {
+      enteredPin = enteredPin.slice(0, -1);
+      updatePinDots();
+    }
+
+    function updatePinDots() {
+      const dots = document.querySelectorAll('.pin-dot');
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('filled', i < enteredPin.length);
+        dot.classList.remove('error');
+      });
+    }
+
+    function checkPin() {
+      if (enteredPin === CORRECT_PIN) {
+        sessionStorage.setItem('staff_authenticated', 'true');
+        showDashboard();
+      } else {
+        const dots = document.querySelectorAll('.pin-dot');
+        dots.forEach(dot => dot.classList.add('error'));
+        setTimeout(() => {
+          enteredPin = '';
+          updatePinDots();
+        }, 500);
+      }
+    }
+
+    // ========== DASHBOARD ==========
+    function showDashboard() {
+      document.getElementById('pinScreen').classList.add('hidden');
+      document.getElementById('dashboard').classList.add('active');
+      loadData();
+      setupRealtime();
+    }
+
+    async function loadData() {
+      await Promise.all([
+        loadQueue(),
+        loadInventory(),
+        loadStats()
+      ]);
+    }
+
+    async function loadQueue() {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('verified', true)
+        .eq('collected', false)
+        .gte('created_at', today)
+        .order('verified_at', { ascending: true });
+
+      if (error) {
+        console.error('Error loading queue:', error);
+        return;
+      }
+
+      queue = data || [];
+      renderQueue();
+    }
+
+    async function loadInventory() {
+      const { data, error } = await supabase
+        .from('inventory')
+        .select('*')
+        .order('display_name');
+
+      if (error) {
+        console.error('Error loading inventory:', error);
+        // Fallback to default
+        inventory = [
+          { flavor: 'barbeque', display_name: 'Barbeque', emoji: '🍖', current_stock: 200, initial_stock: 200 },
+          { flavor: 'dill-pickle', display_name: 'Dill Pickle', emoji: '🥒', current_stock: 200, initial_stock: 200 },
+          { flavor: 'ketchup', display_name: 'Ketchup', emoji: '🍅', current_stock: 200, initial_stock: 200 },
+          { flavor: 'salt-vinegar', display_name: 'Salt & Vinegar', emoji: '🧂', current_stock: 200, initial_stock: 200 },
+          { flavor: 'sea-salt', display_name: 'Sea Salt', emoji: '🌊', current_stock: 200, initial_stock: 200 }
+        ];
+      } else {
+        inventory = data || [];
+      }
+
+      renderInventory();
+    }
+
+    async function loadStats() {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('leads')
+        .select('verified, collected')
+        .gte('created_at', today);
+
+      if (error) {
+        console.error('Error loading stats:', error);
+        return;
+      }
+
+      const verified = data?.filter(l => l.verified).length || 0;
+      const collected = data?.filter(l => l.collected).length || 0;
+      const waiting = verified - collected;
+      const rate = verified > 0 ? Math.round((collected / verified) * 100) : 0;
+
+      document.getElementById('statVerified').textContent = verified;
+      document.getElementById('statCollected').textContent = collected;
+      document.getElementById('statWaiting').textContent = waiting;
+      document.getElementById('statRate').textContent = rate + '%';
+    }
+
+    function renderQueue() {
+      const container = document.getElementById('queueList');
+      document.getElementById('queueCount').textContent = queue.length;
+
+      if (queue.length === 0) {
+        container.innerHTML = `
+          <div class="queue-empty">
+            <div class="queue-empty-icon">✨</div>
+            <p>No pickups waiting</p>
+            <p style="margin-top: 8px; font-size: 14px;">New verifications will appear here</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = queue.map(lead => {
+        const waitMinutes = Math.floor((Date.now() - new Date(lead.verified_at)) / 60000);
+        const flavorItem = inventory.find(i => i.flavor === lead.flavor) || {};
+        return `
+          <div class="queue-card" data-id="${lead.id}">
+            <div class="queue-card-left">
+              <div class="queue-status"></div>
+              <div class="queue-info">
+                <h3>${lead.first_name} ${lead.last_name || ''}</h3>
+                <div class="queue-details">
+                  <span class="queue-flavor">${flavorItem.emoji || '🍟'} ${flavorItem.display_name || lead.flavor}</span>
+                  <span>📞 ${lead.phone || lead.whatsapp_number || 'N/A'}</span>
+                  <span class="queue-time">⏱️ ${waitMinutes} min</span>
+                </div>
+              </div>
+            </div>
+            <div class="queue-card-right">
+              <button class="btn-done" onclick="markCollected('${lead.id}')">
+                ✓ Done
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderInventory() {
+      const container = document.getElementById('inventoryList');
+      const select = document.getElementById('adjustFlavor');
+
+      container.innerHTML = inventory.map(item => {
+        const percentage = Math.round((item.current_stock / item.initial_stock) * 100);
+        const status = percentage <= 10 ? 'critical' : percentage <= 20 ? 'low' : '';
+        return `
+          <div class="inventory-item">
+            <div class="inventory-header">
+              <span class="inventory-name">${item.emoji} ${item.display_name}</span>
+              <span class="inventory-count ${status}">${item.current_stock}</span>
+            </div>
+            <div class="inventory-bar">
+              <div class="inventory-fill ${status}" style="width: ${percentage}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      select.innerHTML = '<option value="">Select flavor...</option>' +
+        inventory.map(item => `<option value="${item.flavor}">${item.emoji} ${item.display_name} (${item.current_stock})</option>`).join('');
+    }
+
+    // ========== REALTIME ==========
+    function setupRealtime() {
+      supabase
+        .channel('leads-changes')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'leads',
+          filter: 'verified=eq.true'
+        }, handleNewLead)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'leads'
+        }, handleLeadUpdate)
+        .subscribe();
+
+      supabase
+        .channel('inventory-changes')
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'inventory'
+        }, () => loadInventory())
+        .subscribe();
+    }
+
+    function handleNewLead(payload) {
+      const lead = payload.new;
+      if (lead.verified && !lead.collected) {
+        queue.unshift(lead);
+        renderQueue();
+        loadStats();
+        showNewPickupAlert(lead);
+        playNotificationSound();
+      }
+    }
+
+    function handleLeadUpdate(payload) {
+      const lead = payload.new;
+      if (lead.collected) {
+        queue = queue.filter(l => l.id !== lead.id);
+        renderQueue();
+        loadStats();
+      }
+    }
+
+    // ========== ACTIONS ==========
+    async function markCollected(leadId) {
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      const { error } = await supabase
+        .from('leads')
+        .update({
+          collected: true,
+          collected_at: new Date().toISOString()
+        })
+        .eq('id', leadId);
+
+      if (error) {
+        console.error('Error marking collected:', error);
+        btn.disabled = false;
+        btn.textContent = '✓ Done';
+        return;
+      }
+
+      // Remove from local queue
+      queue = queue.filter(l => l.id !== leadId);
+      renderQueue();
+      loadStats();
+      loadInventory();
+    }
+
+    // ========== SOUND ==========
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const toggle = document.getElementById('soundToggle');
+      const icon = document.getElementById('soundIcon');
+      const text = document.getElementById('soundText');
+
+      toggle.classList.toggle('active', soundEnabled);
+      icon.textContent = soundEnabled ? '🔔' : '🔕';
+      text.textContent = soundEnabled ? 'ON' : 'OFF';
+    }
+
+    function playNotificationSound() {
+      if (!soundEnabled) return;
+
+      // Create audio context for notification sound
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 880;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+
+        // Second beep
+        setTimeout(() => {
+          const osc2 = audioContext.createOscillator();
+          const gain2 = audioContext.createGain();
+          osc2.connect(gain2);
+          gain2.connect(audioContext.destination);
+          osc2.frequency.value = 1100;
+          osc2.type = 'sine';
+          gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          osc2.start(audioContext.currentTime);
+          osc2.stop(audioContext.currentTime + 0.3);
+        }, 200);
+      } catch (e) {
+        console.log('Audio not supported');
+      }
+    }
+
+    // ========== ALERTS ==========
+    function showNewPickupAlert(lead) {
+      const flavorItem = inventory.find(i => i.flavor === lead.flavor) || {};
+      document.getElementById('alertName').textContent = `${lead.first_name} ${lead.last_name || ''}`;
+      document.getElementById('alertFlavor').textContent = `${flavorItem.emoji || '🍟'} ${flavorItem.display_name || lead.flavor}`;
+      document.getElementById('alertPhone').textContent = lead.phone || lead.whatsapp_number || '';
+      document.getElementById('alertOverlay').classList.add('active');
+
+      // Auto-dismiss after 10 seconds
+      setTimeout(dismissAlert, 10000);
+    }
+
+    function dismissAlert() {
+      document.getElementById('alertOverlay').classList.remove('active');
+    }
+
+    // ========== ADJUST MODAL ==========
+    function openAdjustModal() {
+      currentAdjustment = 0;
+      document.getElementById('adjustValue').textContent = '0';
+      document.getElementById('adjustFlavor').value = '';
+      document.getElementById('adjustModal').classList.add('active');
+    }
+
+    function closeAdjustModal() {
+      document.getElementById('adjustModal').classList.remove('active');
+    }
+
+    function adjustStock(amount) {
+      currentAdjustment += amount;
+      document.getElementById('adjustValue').textContent = (currentAdjustment >= 0 ? '+' : '') + currentAdjustment;
+    }
+
+    async function saveAdjustment() {
+      const flavor = document.getElementById('adjustFlavor').value;
+      if (!flavor) {
+        alert('Please select a flavor');
+        return;
+      }
+
+      const item = inventory.find(i => i.flavor === flavor);
+      if (!item) return;
+
+      const newStock = Math.max(0, item.current_stock + currentAdjustment);
+
+      const { error } = await supabase
+        .from('inventory')
+        .update({ current_stock: newStock })
+        .eq('flavor', flavor);
+
+      if (error) {
+        console.error('Error adjusting stock:', error);
+        alert('Failed to adjust stock');
+        return;
+      }
+
+      closeAdjustModal();
+      loadInventory();
+    }
+
+    // ========== UTILS ==========
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('timeDisplay').textContent = now.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -81,13 +81,14 @@ exports.handler = async (event, context) => {
 
     // Build message body
     const firstName = first_name || "Valued Customer";
-    const messageBody = `Hi ${firstName}! Your CanadaMade verification code is: *${code}*
+    const messageBody = `🍁 *CanadaMade*
 
-This code will expire in 10 minutes.
+Hi ${firstName}!
 
-If you didn't request this code, please ignore this message.
+Your verification code is: *${code}*
 
-- CanadaMade Team`;
+Enter this code to verify.
+Expires in 10 minutes.`;
 
     // Build payload for WhatsApp API
     const payload = {
