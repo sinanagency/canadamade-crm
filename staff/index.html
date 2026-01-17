@@ -136,6 +136,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .pin-key:hover {
@@ -741,19 +745,19 @@
       <div class="pin-dot"></div>
     </div>
 
-    <div class="pin-keypad">
-      <button class="pin-key" onclick="enterPin('1')">1</button>
-      <button class="pin-key" onclick="enterPin('2')">2</button>
-      <button class="pin-key" onclick="enterPin('3')">3</button>
-      <button class="pin-key" onclick="enterPin('4')">4</button>
-      <button class="pin-key" onclick="enterPin('5')">5</button>
-      <button class="pin-key" onclick="enterPin('6')">6</button>
-      <button class="pin-key" onclick="enterPin('7')">7</button>
-      <button class="pin-key" onclick="enterPin('8')">8</button>
-      <button class="pin-key" onclick="enterPin('9')">9</button>
-      <button class="pin-key empty"></button>
-      <button class="pin-key" onclick="enterPin('0')">0</button>
-      <button class="pin-key delete" onclick="deletePin()">⌫</button>
+    <div class="pin-keypad" id="pinKeypad">
+      <button class="pin-key" data-digit="1" type="button">1</button>
+      <button class="pin-key" data-digit="2" type="button">2</button>
+      <button class="pin-key" data-digit="3" type="button">3</button>
+      <button class="pin-key" data-digit="4" type="button">4</button>
+      <button class="pin-key" data-digit="5" type="button">5</button>
+      <button class="pin-key" data-digit="6" type="button">6</button>
+      <button class="pin-key" data-digit="7" type="button">7</button>
+      <button class="pin-key" data-digit="8" type="button">8</button>
+      <button class="pin-key" data-digit="9" type="button">9</button>
+      <button class="pin-key empty" type="button"></button>
+      <button class="pin-key" data-digit="0" type="button">0</button>
+      <button class="pin-key delete" data-action="delete" type="button">⌫</button>
     </div>
   </div>
 
@@ -890,11 +894,53 @@
       updateTime();
       setInterval(updateTime, 1000);
 
+      // Setup PIN keypad with proper touch support
+      setupPinKeypad();
+
       // Check if already authenticated
       if (sessionStorage.getItem('staff_authenticated') === 'true') {
         showDashboard();
       }
     });
+
+    // ========== PIN KEYPAD SETUP ==========
+    let lastTap = 0;
+
+    function setupPinKeypad() {
+      const keypad = document.getElementById('pinKeypad');
+      if (!keypad) return;
+
+      // Use pointer events for best cross-device support
+      keypad.addEventListener('pointerup', handleKeypadPress);
+
+      // Fallback for older devices
+      keypad.addEventListener('click', function(e) {
+        // Only use click if pointerup didn't fire recently
+        if (Date.now() - lastTap > 300) {
+          handleKeypadPress(e);
+        }
+      });
+    }
+
+    function handleKeypadPress(e) {
+      lastTap = Date.now();
+
+      const button = e.target.closest('.pin-key');
+      if (!button || button.classList.contains('empty')) return;
+
+      // Visual feedback
+      button.style.transform = 'scale(0.95)';
+      setTimeout(() => { button.style.transform = ''; }, 100);
+
+      const digit = button.dataset.digit;
+      const action = button.dataset.action;
+
+      if (digit !== undefined) {
+        enterPin(digit);
+      } else if (action === 'delete') {
+        deletePin();
+      }
+    }
 
     // ========== PIN FUNCTIONS ==========
     function enterPin(digit) {
