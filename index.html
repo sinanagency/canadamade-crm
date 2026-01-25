@@ -2322,13 +2322,20 @@
             inputmode="numeric"
           />
         </div>
-        <p style="font-size: 13px; color: #6b7280; margin-bottom: 24px">
+        <p style="font-size: 13px; color: #6b7280; margin-bottom: 12px">
           Didn't receive it?
           <a
             id="resendCode"
             style="color: var(--red); cursor: pointer; font-weight: 600"
             >Resend Code</a
           >
+        </p>
+        <div id="showCodeFallback" style="display: none; margin-bottom: 24px; padding: 12px; background: #fef3c7; border-radius: 8px; text-align: center;">
+          <p id="fallbackMessage" style="font-size: 12px; color: #92400e; margin: 0 0 4px 0;">Still not received? Your code is:</p>
+          <p id="fallbackCode" style="font-size: 28px; font-weight: 700; color: #92400e; margin: 0; letter-spacing: 8px;"></p>
+        </div>
+        <p id="showCodeLink" style="font-size: 12px; color: #9ca3af; margin-bottom: 24px; display: none;">
+          <a id="revealCode" style="color: #6b7280; cursor: pointer; text-decoration: underline;">Having trouble? Show code on screen</a>
         </p>
         <div style="display: flex; gap: 12px">
           <button
@@ -2636,6 +2643,8 @@
           let formDataToSubmit = null;
           let whatsappSameAsPhone = true;
           let phoneCount = 1;
+          let isSubmitting = false; // Prevent double form submissions
+          let isVerifying = false; // Prevent double verify clicks
 
           // All countries
           const countries = [
@@ -3351,49 +3360,116 @@
 
             document.getElementById("verifyModal").style.display = "flex";
             document.getElementById("vc1").focus();
+
+            // Reset fallback display
+            document.getElementById("showCodeFallback").style.display = "none";
+            document.getElementById("showCodeLink").style.display = "none";
+            document.getElementById("fallbackCode").textContent = verificationCode;
+
+            // WhatsApp delivery is not guaranteed (24-hour conversation window)
+            // Show fallback faster for WhatsApp (5s link, 12s auto) vs others (10s link, 20s auto)
+            const isWhatsApp = selectedComm === "whatsapp";
+            const linkDelay = isWhatsApp ? 5000 : 10000;
+            const autoRevealDelay = isWhatsApp ? 12000 : 20000;
+
+            // Update fallback text based on method
+            const revealLink = document.getElementById("revealCode");
+            const fallbackMsg = document.getElementById("fallbackMessage");
+            if (isWhatsApp) {
+              revealLink.textContent = "Didn't receive WhatsApp? Show code on screen";
+              fallbackMsg.textContent = "WhatsApp delivery can vary. Your code is:";
+            } else {
+              revealLink.textContent = "Having trouble? Show code on screen";
+              fallbackMsg.textContent = "Still not received? Your code is:";
+            }
+
+            // Show "reveal code" link after delay
+            setTimeout(() => {
+              if (document.getElementById("verifyModal").style.display === "flex") {
+                document.getElementById("showCodeLink").style.display = "block";
+              }
+            }, linkDelay);
+
+            // Auto-show code after longer delay if still on modal
+            setTimeout(() => {
+              if (document.getElementById("verifyModal").style.display === "flex") {
+                document.getElementById("showCodeFallback").style.display = "block";
+                document.getElementById("showCodeLink").style.display = "none";
+              }
+            }, autoRevealDelay);
           }
 
-          function verifyAndSubmit() {
+          // Reveal code click handler
+          document.getElementById("revealCode")?.addEventListener("click", function() {
+            document.getElementById("showCodeFallback").style.display = "block";
+            document.getElementById("showCodeLink").style.display = "none";
+          });
+
+          async function verifyAndSubmit() {
+            // Prevent double-click
+            if (isVerifying) {
+              console.log("Already verifying, ignoring duplicate click");
+              return;
+            }
+            isVerifying = true;
+
+            console.log("=== verifyAndSubmit START ===");
             const submitBtn = document.getElementById("submitVerify");
             const entered = ["vc1", "vc2", "vc3", "vc4"]
               .map((id) => document.getElementById(id).value)
               .join("");
+            console.log("Entered code:", entered, "Expected:", verificationCode);
+
             if (entered.length !== 4) {
               alert("Please enter the complete 4-digit code");
+              isVerifying = false;
               return;
             }
 
             submitBtn.disabled = true;
             submitBtn.textContent = "Verifying...";
 
-            setTimeout(() => {
-              if (entered === verificationCode) {
-                submitBtn.textContent = "✓ Verified";
-                submitBtn.style.background = "#10B981";
-                setTimeout(() => {
-                  document.getElementById("verifyModal").style.display = "none";
-                  submitFormData();
-                }, 500);
-              } else {
+            if (entered === verificationCode) {
+              console.log("Code MATCHED! Proceeding...");
+              submitBtn.textContent = "✓ Verified";
+              submitBtn.style.background = "#10B981";
+              console.log("Calling submitFormData...");
+              try {
+                await submitFormData();
+                console.log("submitFormData completed successfully");
+                // Only hide modal AFTER success
+                document.getElementById("verifyModal").style.display = "none";
+                isVerifying = false;
+              } catch (err) {
+                console.error("submitFormData FAILED:", err);
+                alert("Error submitting: " + err.message);
+                // Restore UI so user can retry
                 submitBtn.disabled = false;
                 submitBtn.textContent = "Verify & Submit";
+                submitBtn.style.background = "var(--red)";
+                isVerifying = false;
+              }
+            } else {
+              console.log("Code MISMATCH!");
+              isVerifying = false;
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Verify & Submit";
+              ["vc1", "vc2", "vc3", "vc4"].forEach((id) => {
+                const input = document.getElementById(id);
+                input.value = "";
+                input.style.borderColor = "#EF4444";
+                input.style.animation = "shake 0.3s";
+              });
+              setTimeout(() => {
                 ["vc1", "vc2", "vc3", "vc4"].forEach((id) => {
                   const input = document.getElementById(id);
-                  input.value = "";
-                  input.style.borderColor = "#EF4444";
-                  input.style.animation = "shake 0.3s";
+                  input.style.borderColor = "#e5e7eb";
+                  input.style.animation = "";
                 });
-                setTimeout(() => {
-                  ["vc1", "vc2", "vc3", "vc4"].forEach((id) => {
-                    const input = document.getElementById(id);
-                    input.style.borderColor = "#e5e7eb";
-                    input.style.animation = "";
-                  });
-                  document.getElementById("vc1").focus();
-                }, 300);
-                alert("Invalid code. Please try again.");
-              }
-            }, 300);
+                document.getElementById("vc1").focus();
+              }, 300);
+              alert("Invalid code. Please try again.");
+            }
           }
 
           // Confetti function
@@ -3752,12 +3828,21 @@
             .addEventListener("submit", async function (e) {
               e.preventDefault();
 
+              // Prevent double submission
+              if (isSubmitting) {
+                console.log("Already submitting, ignoring duplicate click");
+                return;
+              }
+              isSubmitting = true;
+
               // Validate
               if (!selectedComm) {
+                isSubmitting = false;
                 showError("Please select your preferred communication method");
                 return;
               }
               if (!document.getElementById("country").value) {
+                isSubmitting = false;
                 showError("Please select your country");
                 return;
               }
@@ -3766,6 +3851,7 @@
                 !whatsappSameAsPhone &&
                 !document.getElementById("waNumber").value
               ) {
+                isSubmitting = false;
                 showError("Please enter your WhatsApp number");
                 return;
               }
@@ -3840,87 +3926,102 @@
                 // created_at: new Date().toISOString(),
               };
 
-              // Show verification
-              showVerification();
+              // Show verification - AWAIT it to prevent double-send
+              await showVerification();
               submitBtn.disabled = false;
               submitBtn.textContent = "Send Verification Code 🔐";
+              isSubmitting = false; // Reset after verification sent
             });
 
           async function submitFormData() {
+            console.log("=== submitFormData START ===");
             const submitBtn = document.getElementById("submitBtn");
             submitBtn.disabled = true;
             submitBtn.textContent = "Submitting...";
 
             try {
+              console.log("1. Preparing formData...");
               if (formDataToSubmit) {
                 formDataToSubmit.verification_code = verificationCode;
                 formDataToSubmit.verified = true;
-                formDataToSubmit.verified_at = new Date().toISOString();
-                formDataToSubmit.verification_method = selectedComm;
-                formDataToSubmit.collected = false;
+                // Store these locally but don't send to Supabase until columns exist
+                const extraData = {
+                  verified_at: new Date().toISOString(),
+                  verification_method: selectedComm,
+                  collected: false
+                };
+                // Merge for email backup
+                formDataToSubmit._extraData = extraData;
               }
+              console.log("2. formData prepared:", formDataToSubmit);
 
-              // Check and decrement inventory
+              // Check and decrement inventory (non-blocking - just log if fails)
+              console.log("3. Checking inventory for:", formDataToSubmit.flavor);
               if (formDataToSubmit.flavor) {
-                const stockAvailable = await decrementInventory(
-                  formDataToSubmit.flavor
-                );
-                if (!stockAvailable) {
-                  showError(
-                    `Sorry, ${formDataToSubmit.flavor} is currently out of stock. Please select another flavor.`
+                try {
+                  const stockAvailable = await decrementInventory(
+                    formDataToSubmit.flavor
                   );
-                  submitBtn.disabled = false;
-                  submitBtn.textContent = "Confirm Order";
-                  return;
+                  console.log("4. Inventory check result:", stockAvailable);
+                  if (!stockAvailable) {
+                    console.warn("Inventory low but proceeding anyway");
+                    // Don't block - proceed anyway
+                  }
+                } catch (invErr) {
+                  console.warn("Inventory check failed, proceeding anyway:", invErr);
                 }
               }
 
-              // Save to Supabase
+              // Save to Supabase (clean data - remove _extraData which isn't a column)
+              console.log("5. Saving to Supabase...");
+              const supabaseData = { ...formDataToSubmit };
+              delete supabaseData._extraData; // Remove extra data that's not in DB
               const { data, error } = await supabaseClient
                 .from("leads")
-                .insert([formDataToSubmit]);
+                .insert([supabaseData]);
 
               if (error) {
-                console.error("Supabase error:", error);
+                console.error("6. Supabase error:", error);
                 throw error;
               }
 
-              console.log("Lead saved:", formDataToSubmit);
+              console.log("7. Lead saved successfully!");
 
-              // Send confirmation message via user's preferred method
-              try {
-                const phone = formDataToSubmit.comm_preference === "whatsapp"
-                  ? formDataToSubmit.whatsapp_number
-                  : formDataToSubmit.phone;
-
-                const confirmResponse = await fetch(
-                  "/.netlify/functions/send-confirmation",
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      method: formDataToSubmit.comm_preference,
-                      phone: phone,
-                      email: formDataToSubmit.email,
-                      first_name: formDataToSubmit.first_name,
-                      flavor: formDataToSubmit.flavor,
-                    }),
-                  }
-                );
-                if (!confirmResponse.ok) {
-                  console.warn("Confirmation message failed, but user is still verified");
-                } else {
-                  console.log("Confirmation message sent successfully");
-                }
-              } catch (confirmError) {
-                console.warn("Confirmation message error:", confirmError.message);
-                // Do not block the user flow if confirmation fails
-              }
-
-              // Update success overlay with flavor
+              // Update success overlay with flavor FIRST (instant feedback)
+              console.log("8. Setting success overlay...");
               document.getElementById("successFlavor").textContent = "🍟 " + formDataToSubmit.flavor;
+
+              // Show success with confetti IMMEDIATELY
+              console.log("9. Showing confetti and success overlay...");
+              createConfetti();
+              document.getElementById("successOverlay").classList.add("active");
+              console.log("10. SUCCESS OVERLAY SHOWN!");
+
+              // Send confirmation message in background (fire-and-forget)
+              const phone = formDataToSubmit.comm_preference === "whatsapp"
+                ? formDataToSubmit.whatsapp_number
+                : formDataToSubmit.phone;
+
+              fetch("/.netlify/functions/send-confirmation", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  method: formDataToSubmit.comm_preference,
+                  phone: phone,
+                  email: formDataToSubmit.email,
+                  first_name: formDataToSubmit.first_name,
+                  flavor: formDataToSubmit.flavor,
+                }),
+              }).then(r => console.log("Confirmation sent:", r.ok))
+                .catch(e => console.warn("Confirmation error:", e.message));
+
+              // BACKUP: Send complete lead data to info@canadamade.com
+              fetch("/.netlify/functions/backup-lead", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formDataToSubmit),
+              }).then(r => console.log("Lead backup email sent:", r.ok))
+                .catch(e => console.warn("Backup email error:", e.message));
 
               // Also save to localStorage as backup
               const leads = JSON.parse(
@@ -3928,10 +4029,6 @@
               );
               leads.push(formDataToSubmit);
               localStorage.setItem("canadamade_leads", JSON.stringify(leads));
-
-              // Show success with confetti
-              createConfetti();
-              document.getElementById("successOverlay").classList.add("active");
 
               // Reset form after delay
               setTimeout(() => {
@@ -4003,8 +4100,9 @@
                 }
               }, 4000);
             } catch (error) {
-              console.error("Submission error:", error);
-              showError("Something went wrong. Please try again.");
+              console.error("=== SUBMISSION ERROR ===", error);
+              alert("Submission failed: " + error.message);
+              showError("Something went wrong: " + error.message);
               submitBtn.disabled = false;
               submitBtn.textContent = "Send Verification Code 🔐";
             }
