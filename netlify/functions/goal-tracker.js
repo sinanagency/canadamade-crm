@@ -14,11 +14,11 @@ const supabase = createClient(
 
 // Configure goals here
 const GOALS = {
-  daily_leads: 100,
-  daily_verified: 80,
-  daily_wholesale: 20,
-  total_leads: 1000,
-  total_samples: 1000  // 5 flavors x 200 each
+  daily_leads: 200,
+  daily_verified: 200,
+  daily_wholesale: 40,
+  total_leads: 2500,
+  total_samples: 2500
 };
 
 exports.handler = async (event) => {

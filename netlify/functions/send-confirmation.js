@@ -92,12 +92,9 @@ exports.handler = async (event, context) => {
 
 Hi ${firstName},
 
-You're all set! Please proceed to the CanadaMade booth to collect your FREE *${flavor}* sample.
+You're all set! Show this message to collect your FREE *${flavor}* sample.
 
-See you there! 🍁
-
-───────────────
-CanadaMade | Gulf Expo Dubai 2026`;
+🍁 CanadaMade | Gulf Expo Dubai 2026`;
 
       const payload = {
         from_phone_number_id: WHATSAPP_PHONE_NUMBER_ID,
@@ -179,7 +176,7 @@ CanadaMade | Gulf Expo Dubai 2026`;
               </p>
 
               <p style="margin: 0 0 32px 0; font-size: 18px; line-height: 1.7; color: #4b5563;">
-                You're all set! Please proceed to the CanadaMade booth to collect your FREE sample:
+                You're all set! Show this email to collect your FREE sample:
               </p>
 
               <!-- Flavor Box -->
@@ -191,7 +188,7 @@ CanadaMade | Gulf Expo Dubai 2026`;
               </div>
 
               <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #6b7280;">
-                See you at the booth! 🍁
+                Enjoy! 🍁
               </p>
             </td>
           </tr>
@@ -220,7 +217,7 @@ CanadaMade | Gulf Expo Dubai 2026`;
         content: [
           {
             type: "text/plain",
-            value: `Hi ${firstName},\n\nYou're verified! Please proceed to the CanadaMade booth to collect your FREE ${flavor} sample.\n\nSee you there!\n\n🍁 CanadaMade | Gulf Expo Dubai 2026`,
+            value: `Hi ${firstName},\n\nYou're verified! Show this email to collect your FREE ${flavor} sample.\n\nEnjoy!\n\n🍁 CanadaMade | Gulf Expo Dubai 2026`,
           },
           { type: "text/html", value: bodyHtml },
         ],
@@ -273,7 +270,7 @@ CanadaMade | Gulf Expo Dubai 2026`;
         };
       }
 
-      const messageBody = `CanadaMade: Verified! Proceed to our booth to collect your FREE ${flavor} sample. See you there!`;
+      const messageBody = `CanadaMade: Verified! Show this message to collect your FREE ${flavor} sample. Enjoy!`;
 
       const auth = Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString("base64");
       const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
