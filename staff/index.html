@@ -1064,15 +1064,17 @@ async function loadData() {
 }
 
 async function loadQueue() {
-  const today = new Date().toISOString().split('T')[0];
-  const { data } = await db
+  // Show ALL verified leads waiting for pickup (no date filter)
+  const { data, error } = await db
     .from('leads')
     .select('*')
     .eq('verified', true)
     .eq('booth_notified', false)
-    .gte('created_at', today)
     .order('created_at', { ascending: true });
 
+  if (error) {
+    console.error('Queue load error:', error);
+  }
   queue = data || [];
   renderQueue();
 }
