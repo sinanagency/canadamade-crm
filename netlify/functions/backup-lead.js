@@ -8,6 +8,38 @@ const headers = {
   "Content-Type": "application/json",
 };
 
+// Get lead count from Supabase
+async function getLeadCount() {
+  const SUPABASE_URL = process.env.SUPABASE_URL || 'https://iaabsenvpwyqakvkypeq.supabase.co';
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!SUPABASE_KEY) {
+    console.warn("No Supabase key for lead count");
+    return null;
+  }
+
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/leads?select=id`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'count=exact'
+      }
+    });
+
+    const countHeader = response.headers.get('content-range');
+    if (countHeader) {
+      // Format: "0-X/total"
+      const total = parseInt(countHeader.split('/')[1], 10);
+      return total;
+    }
+    return null;
+  } catch (err) {
+    console.error("Error getting lead count:", err);
+    return null;
+  }
+}
+
 exports.handler = async (event, context) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers, body: "" };
@@ -23,6 +55,10 @@ exports.handler = async (event, context) => {
 
   try {
     const leadData = JSON.parse(event.body || "{}");
+
+    // Get current lead count
+    const leadCount = await getLeadCount();
+    const leadNumber = leadCount !== null ? `#${leadCount}` : '';
 
     const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
     if (!SENDGRID_API_KEY) {
@@ -44,10 +80,11 @@ exports.handler = async (event, context) => {
     // Create formatted lead summary
     const leadSummary = `
 ═══════════════════════════════════════════════════════════════
-                    NEW LEAD - GULF EXPO 2026
+                    LEAD ${leadNumber} - GULF EXPO 2026
 ═══════════════════════════════════════════════════════════════
 
 📅 Submitted: ${dateFormatted}
+🔢 Lead Number: ${leadNumber || 'N/A'}
 🆔 Verification Code: ${leadData.verification_code || 'N/A'}
 
 ───────────────────────────────────────────────────────────────
@@ -137,7 +174,7 @@ ${JSON.stringify(leadData, null, 2)}
 <body>
   <div class="container">
     <div class="header">
-      <h1>🍁 New Lead Captured</h1>
+      <h1>🍁 Lead ${leadNumber} Captured</h1>
       <p>Gulf Expo Dubai 2026 - ${dateFormatted}</p>
     </div>
 
@@ -195,7 +232,7 @@ ${JSON.stringify(leadData, null, 2)}
         to: [{ email: "info@canadamade.com", name: "CanadaMade Leads" }],
       }],
       from: { email: "info@canadamade.com", name: "CanadaMade Lead System" },
-      subject: `🍁 New Lead: ${leadData.first_name || 'Unknown'} ${leadData.last_name || ''} - ${leadData.company || 'Gulf Expo'} [${leadData.flavor || 'No flavor'}]`,
+      subject: `🍁 Lead ${leadNumber}: ${leadData.first_name || 'Unknown'} ${leadData.last_name || ''} - ${leadData.company || 'Gulf Expo'} [${leadData.flavor || 'No flavor'}]`,
       content: [
         { type: "text/plain", value: leadSummary },
         { type: "text/html", value: htmlBody },
