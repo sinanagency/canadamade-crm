@@ -1349,15 +1349,30 @@ async function loadHotLeads() {
   }
 
   document.getElementById('hotLeadsContainer').innerHTML = allHot.map(lead => `
-    <div class="hot-lead ${lead.priority.toLowerCase()}">
+    <div class="hot-lead ${lead.priority.toLowerCase()}" onclick="toggleLeadDetails(this)">
       <div class="hot-lead-header">
         <span class="hot-lead-name">${lead.name}</span>
         <span class="hot-lead-badge ${lead.priority.toLowerCase()}">${lead.priority}</span>
       </div>
       <div class="hot-lead-company">${lead.company} · ${lead.job_title}</div>
       <div class="hot-lead-tags">${lead.reasons.slice(0, 3).map(r => `<span class="hot-lead-tag">${r}</span>`).join('')}</div>
+      <div class="lead-details" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:12px;">
+        <div style="margin-bottom:6px;">📧 ${lead.email || 'N/A'}</div>
+        <div style="margin-bottom:6px;">📱 ${lead.phone || 'N/A'}</div>
+        <div style="margin-bottom:6px;">🌍 ${lead.country || 'N/A'}</div>
+        <div style="margin-bottom:6px;">🍟 ${lead.flavor || 'N/A'}</div>
+        <div style="margin-bottom:6px;">💼 ${lead.interest || 'N/A'}</div>
+        ${lead.notes ? `<div style="margin-top:8px; padding:8px; background:var(--card); border-radius:6px;">📝 ${lead.notes}</div>` : ''}
+      </div>
     </div>
   `).join('');
+}
+
+function toggleLeadDetails(el) {
+  const details = el.querySelector('.lead-details');
+  if (details) {
+    details.style.display = details.style.display === 'none' ? 'block' : 'none';
+  }
 }
 
 async function loadComparison() {
