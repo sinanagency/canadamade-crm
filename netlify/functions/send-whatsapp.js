@@ -134,7 +134,7 @@ Expires in 10 minutes.`;
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ success: true, message_id: result.message_id }),
+      body: JSON.stringify({ success: true, message_id: result.message_id, api_response: result, phone_sent_to: cleanPhone }),
     };
   } catch (error) {
     console.error("send-whatsapp error:", error);
